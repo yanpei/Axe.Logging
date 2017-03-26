@@ -24,10 +24,41 @@ namespace Axe.Logging.Test
             var logEntryUnKnown = new LogEntry(time, entry, user, data, Level.Unknown);
             Exception exceptionUnKnow = new Exception().Mark(logEntryUnKnown);
 
-            Assert.Equal(exceptionDefinedByBusiness.Data["AxeLogging"], logEntryDefinedByBusiness);
-            Assert.Equal(exceptionIKnowItWillHappen.Data["AxeLogging"], logEntryIKnowItWillHappen);
-            Assert.Equal(exceptionUnKnow.Data["AxeLogging"], logEntryUnKnown);
+            Assert.Equal(logEntryDefinedByBusiness, exceptionDefinedByBusiness.Data["AxeLogging"]);
+            Assert.Equal(logEntryIKnowItWillHappen, exceptionIKnowItWillHappen.Data["AxeLogging"]);
+            Assert.Equal(logEntryUnKnown, exceptionUnKnow.Data["AxeLogging"]);
         }
+
+        [Fact]
+        public void should_get_log_entry_of_exception()
+        {
+            var time = DateTime.UtcNow;
+            var entry = "http://localhost:8080 Post";
+            var user = new { Id = 1 };
+            var data = new { Country = "China" };
+
+            var logEntry = new LogEntry(time, entry, user, data, Level.DefinedByBusiness);
+            Exception exception = new Exception().Mark(logEntry);
+
+            Assert.Equal(logEntry, exception.GetLogEntry());
+        }
+
+        [Fact]
+        public void should_get_log_entry_of_exception_when_log_entry_existed_in_inner_exception()
+        {
+            var time = DateTime.UtcNow;
+            var entry = "http://localhost:8080 Post";
+            var user = new { Id = 1 };
+            var data = new { Country = "China" };
+
+            var logEntry = new LogEntry(time, entry, user, data, Level.DefinedByBusiness);
+            var innerException = new Exception("inner exception").Mark(logEntry);
+            Exception exception = new Exception("exception 1", innerException);
+
+            Assert.Equal(logEntry, exception.GetLogEntry());
+        }
+
+
 
     }
 

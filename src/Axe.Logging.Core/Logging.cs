@@ -6,10 +6,23 @@ namespace Axe.Logging.Core
 {
     public static class Logging
     {
+        private const string LOG_ENTRY_KEY = "AxeLogging";
+
         public static T Mark<T>(this T exception, LogEntry log) where T : Exception
         {
-            exception.Data.Add("AxeLogging", log);
+            exception.Data.Add(LOG_ENTRY_KEY, log);
             return exception;
+        }
+
+        public static LogEntry GetLogEntry(this Exception exception)
+        {
+            var exceptionWithLogEntry = GetExceptionWithLogEntry(exception);
+            return exceptionWithLogEntry.Data[LOG_ENTRY_KEY] as LogEntry;
+        }
+
+        private static Exception GetExceptionWithLogEntry(Exception exception)
+        {
+            return (exception.Data[LOG_ENTRY_KEY] != null  ||  exception.InnerException == null) ? exception : GetExceptionWithLogEntry(exception.InnerException);
         }
     }
 
