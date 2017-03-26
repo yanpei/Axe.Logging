@@ -14,15 +14,19 @@ namespace Axe.Logging.Core
             return exception;
         }
 
-        public static LogEntry GetLogEntry(this Exception exception)
+        public static LogEntry GetLogEntry(this Exception exception, int maxLevel)
         {
-            var exceptionWithLogEntry = GetExceptionWithLogEntry(exception);
+            var currentLevel = 1;
+            var exceptionWithLogEntry = GetExceptionWithLogEntry(exception, maxLevel, currentLevel);
             return exceptionWithLogEntry.Data[LOG_ENTRY_KEY] as LogEntry;
         }
 
-        private static Exception GetExceptionWithLogEntry(Exception exception)
+        [SuppressMessage("ReSharper", "TailRecursiveCall")]
+        private static Exception GetExceptionWithLogEntry(Exception exception, int maxLevel, int currentLevel)
         {
-            return (exception.Data[LOG_ENTRY_KEY] != null  ||  exception.InnerException == null) ? exception : GetExceptionWithLogEntry(exception.InnerException);
+            return (exception.Data[LOG_ENTRY_KEY] != null  ||  exception.InnerException == null || currentLevel >= maxLevel) ? 
+                exception : 
+                GetExceptionWithLogEntry(exception.InnerException, maxLevel, currentLevel + 1);
         }
     }
 

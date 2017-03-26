@@ -40,7 +40,7 @@ namespace Axe.Logging.Test
             var logEntry = new LogEntry(time, entry, user, data, Level.DefinedByBusiness);
             Exception exception = new Exception().Mark(logEntry);
 
-            Assert.Equal(logEntry, exception.GetLogEntry());
+            Assert.Equal(logEntry, exception.GetLogEntry(1));
         }
 
         [Fact]
@@ -55,9 +55,24 @@ namespace Axe.Logging.Test
             var innerException = new Exception("inner exception").Mark(logEntry);
             Exception exception = new Exception("exception 1", innerException);
 
-            Assert.Equal(logEntry, exception.GetLogEntry());
+            Assert.Equal(logEntry, exception.GetLogEntry(2));
         }
 
+        [Fact]
+        public void should_get_log_entry_of_exception_in_certain_levels_given_max_level()
+        {
+            var time = DateTime.UtcNow;
+            var entry = "http://localhost:8080 Post";
+            var user = new { Id = 1 };
+            var data = new { Country = "China" };
+            var logEntry = new LogEntry(time, entry, user, data, Level.DefinedByBusiness);
+
+            Exception logEntryInExceptionLevel2 = new Exception("exception1 level1", new Exception("exception1 level 2").Mark(logEntry));
+            Exception logEntryInExceptionLevel3 = new Exception("exception2 level 1", new Exception("exception2 level 2", new Exception("exception2 level 3").Mark(logEntry)));
+
+            Assert.Equal(logEntry, logEntryInExceptionLevel2.GetLogEntry(2));
+            Assert.Equal(null, logEntryInExceptionLevel3.GetLogEntry(2));
+        }
 
 
     }
