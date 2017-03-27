@@ -30,12 +30,11 @@ namespace Axe.Logging.Test
         }
 
         [Fact]
-        public void should_get_log_entry_of_exception()
+        public void should_get_unknown_level_log_entry_given_exception_not_marked_with_log_entry()
         {
-            LogEntry doNotCare = CreateLogEntry();
-            var exception = new Exception().Mark(doNotCare);
-
-            Assert.Equal(doNotCare, exception.GetLogEntry(1).Single());
+            var exception = new Exception();
+            LogEntry logEntry = exception.GetLogEntry(1).Single();
+            Assert.Equal(Level.Unknown, logEntry.Level);
         }
 
         [Fact]
@@ -54,11 +53,11 @@ namespace Axe.Logging.Test
             LogEntry logEntry1 = CreateLogEntry();
             LogEntry logEntry2 = CreateLogEntry(Level.IKnowItWillHappen);
 
-            var logEntryInExceptionLevel2 = new Exception("exception1 level1", new Exception("exception1 level 2").Mark(logEntry1));
-            var logEntryInExceptionLevel3 = new Exception("exception2 level 1", new Exception("exception2 level 2", new Exception("exception2 level 3").Mark(logEntry2)));
+            var exceptionOnLevel3 = new Exception().Mark(logEntry2);
+            var exceptionOnLevel2 = new Exception("exception level 2", exceptionOnLevel3).Mark(logEntry1);
+            var exceptionOnLevel1 = new Exception("exception level 1", exceptionOnLevel2);
 
-            Assert.Equal(logEntry1, logEntryInExceptionLevel2.GetLogEntry(2).Single());
-            Assert.Equal(0, logEntryInExceptionLevel3.GetLogEntry(2).Length);
+            Assert.Equal(logEntry1, exceptionOnLevel1.GetLogEntry(2).Single());
         }
 
         [Fact]

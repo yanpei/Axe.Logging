@@ -24,6 +24,12 @@ namespace Axe.Logging.Core
             var currentLevel = 1;
             var logEntries = new List<LogEntry>();
             GetExceptionWithLogEntry(exception, maxLevel, currentLevel, ref logEntries);
+
+            if (logEntries.Count == 0)
+            {
+                logEntries.Add(new LogEntry(Guid.NewGuid(), DateTime.UtcNow, default(string), null, null, Level.Unknown));
+            }
+
             return logEntries.ToArray();
         }
 
