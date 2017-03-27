@@ -8,6 +8,15 @@ namespace Axe.Logging.Test
     public class LoggingFacts
     {
         [Fact]
+        public void shold_throw_argumet_null_exception_when_mark_exception_given_exception_is_null()
+        {
+            Exception exception = null;
+            LogEntry doNotCare = CreateLogEntry();
+
+            Assert.Throws<ArgumentNullException>(() => exception.Mark(doNotCare));
+        }
+
+        [Fact]
         public void shold_can_mark_log_entry_for_any_exception()
         {
             LogEntry doNotCare1 = CreateLogEntry(Level.Unknown);
