@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using Axe.Logging.Core;
 using Xunit;
 
@@ -15,13 +16,13 @@ namespace Axe.Logging.Test
             var data = new {Country="China"};
 
             var logEntryDefinedByBusiness = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
-            Exception exceptionDefinedByBusiness = new Exception().Mark(logEntryDefinedByBusiness);
+            var exceptionDefinedByBusiness = new Exception().Mark(logEntryDefinedByBusiness);
 
             var logEntryIKnowItWillHappen = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.IKnowItWillHappen);
-            Exception exceptionIKnowItWillHappen = new Exception().Mark(logEntryIKnowItWillHappen);
+            var exceptionIKnowItWillHappen = new SerializationException().Mark(logEntryIKnowItWillHappen);
 
             var logEntryUnKnown = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.Unknown);
-            Exception exceptionUnKnow = new Exception().Mark(logEntryUnKnown);
+            var exceptionUnKnow = new AggregateException().Mark(logEntryUnKnown);
 
             Assert.Equal(logEntryDefinedByBusiness, exceptionDefinedByBusiness.Data["AxeLogging"]);
             Assert.Equal(logEntryIKnowItWillHappen, exceptionIKnowItWillHappen.Data["AxeLogging"]);

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Axe.Logging.Core
 {
@@ -19,12 +17,12 @@ namespace Axe.Logging.Core
         public static LogEntry[] GetLogEntry(this Exception exception, int maxLevel)
         {
             var currentLevel = 1;
-            var list = new List<LogEntry>();
-            GetExceptionWithLogEntry(exception, maxLevel, currentLevel, ref list);
-            return list.ToArray();
+            var logEntries = new List<LogEntry>();
+            GetExceptionWithLogEntry(exception, maxLevel, currentLevel, ref logEntries);
+            return logEntries.ToArray();
         }
 
-        [SuppressMessage("ReSharper", "TailRecursiveCall")]
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         private static void GetExceptionWithLogEntry(Exception exception, int maxLevel, int currentLevel, ref List<LogEntry> list)
         {
             if (currentLevel <= maxLevel)
