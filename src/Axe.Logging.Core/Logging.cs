@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Axe.Logging.Core
 {
@@ -14,19 +16,37 @@ namespace Axe.Logging.Core
             return exception;
         }
 
-        public static LogEntry GetLogEntry(this Exception exception, int maxLevel)
+        public static LogEntry[] GetLogEntry(this Exception exception, int maxLevel)
         {
             var currentLevel = 1;
-            var exceptionWithLogEntry = GetExceptionWithLogEntry(exception, maxLevel, currentLevel);
-            return exceptionWithLogEntry.Data[LOG_ENTRY_KEY] as LogEntry;
+            var list = new List<LogEntry>();
+            GetExceptionWithLogEntry(exception, maxLevel, currentLevel, ref list);
+            return list.ToArray();
         }
 
         [SuppressMessage("ReSharper", "TailRecursiveCall")]
-        private static Exception GetExceptionWithLogEntry(Exception exception, int maxLevel, int currentLevel)
+        private static void GetExceptionWithLogEntry(Exception exception, int maxLevel, int currentLevel, ref List<LogEntry> list)
         {
-            return (exception.Data[LOG_ENTRY_KEY] != null  ||  exception.InnerException == null || currentLevel >= maxLevel) ? 
-                exception : 
-                GetExceptionWithLogEntry(exception.InnerException, maxLevel, currentLevel + 1);
+            if (currentLevel <= maxLevel)
+            {
+                if (exception.Data[LOG_ENTRY_KEY] != null)
+                {
+                    list.Add(exception.Data[LOG_ENTRY_KEY] as LogEntry);
+                }
+
+                if (exception.GetType() == new AggregateException().GetType())
+                {
+                    var aggregateException = exception as AggregateException;
+                    foreach (var aggregateExceptionInnerException in aggregateException.InnerExceptions)
+                    {
+                        GetExceptionWithLogEntry(aggregateExceptionInnerException, maxLevel, currentLevel + 1, ref list);
+                    }
+                }
+                else if (exception.InnerException != null)
+                {
+                    GetExceptionWithLogEntry(exception.InnerException, maxLevel, currentLevel + 1, ref list);
+                }
+            }
         }
     }
 
@@ -34,8 +54,9 @@ namespace Axe.Logging.Core
     public class LogEntry
     {
        
-        public LogEntry(DateTime time, string entry, object user, object data, Level level)
+        public LogEntry(Guid id, DateTime time, string entry, object user, object data, Level level)
         {
+            Id = id;
             Time = time;
             Entry = entry;
             User = user;
@@ -43,6 +64,7 @@ namespace Axe.Logging.Core
             Level = level;
         }
 
+        public Guid Id { get; }
         public DateTime Time { get;}
         public string Entry { get; }
         public object User { get; }
