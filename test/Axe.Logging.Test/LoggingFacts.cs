@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
 using Axe.Logging.Core;
 using Xunit;
@@ -10,18 +11,14 @@ namespace Axe.Logging.Test
         [Fact]
         public void shold_can_mark_log_entry_for_any_exception()
         {
-            var logEntryDefinedByBusiness = CreateLogEntry();
-            var exceptionDefinedByBusiness = new Exception().Mark(logEntryDefinedByBusiness);
+            var doNotCareLogEntry1 = CreateLogEntry(Level.Unknown);
+            var aggregateException = new AggregateException().Mark(doNotCareLogEntry1);
 
-            var logEntryIKnowItWillHappen =  CreateLogEntry(Level.IKnowItWillHappen);
-            var exceptionIKnowItWillHappen = new SerializationException().Mark(logEntryIKnowItWillHappen);
+            var doNotCareLogEntry2 = CreateLogEntry();
+            var exception = new Exception().Mark(doNotCareLogEntry2);
 
-            var logEntryUnKnown = CreateLogEntry(Level.Unknown);
-            var exceptionUnKnow = new AggregateException().Mark(logEntryUnKnown);
-
-            Assert.Equal(logEntryDefinedByBusiness, exceptionDefinedByBusiness.Data["AxeLogging"]);
-            Assert.Equal(logEntryIKnowItWillHappen, exceptionIKnowItWillHappen.Data["AxeLogging"]);
-            Assert.Equal(logEntryUnKnown, exceptionUnKnow.Data["AxeLogging"]);
+            Assert.Equal(doNotCareLogEntry1, aggregateException.GetLogEntry(1).Single());
+            Assert.Equal(doNotCareLogEntry2, exception.GetLogEntry(1).Single());
         }
 
         [Fact]
