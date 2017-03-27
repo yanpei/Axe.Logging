@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Axe.Logging.Core;
 using Xunit;
 
@@ -96,7 +95,7 @@ namespace Axe.Logging.Test
         }
 
         [Fact]
-        public void should_get_log_entry_of_exception_contains_aggreate_exception_in_certain_levels_given_max_level()
+        public void should_apply_max_level_constaraint_to_each_child_for_exception_contains_aggreate_exception()
         {
             var time = DateTime.UtcNow;
             var entry = "http://localhost:8080 Post";
@@ -111,6 +110,28 @@ namespace Axe.Logging.Test
 
             Assert.Equal(1,aggregateException.GetLogEntry(3).Length);
             Assert.Equal(logEntry1, aggregateException.GetLogEntry(3)[0]); 
+        }
+
+        [Fact]
+        public void should_get_all_log_entries_when_exception_and_inner_exception_both_have_log_entry()
+        {
+            var time = DateTime.UtcNow;
+            var entry = "http://localhost:8080 Post";
+            var user = new { Id = 1 };
+            var data = new { Country = "China" };
+            var logEntryUnknown = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.Unknown);
+            var logEntryDefinedByBusiness = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
+            var logEntryIKnowItWillHappen = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.IKnowItWillHappen);
+
+            Exception exception1 = new Exception("exception level 3").Mark(logEntryDefinedByBusiness);
+            Exception exception2 = new Exception("exception level 3").Mark(logEntryIKnowItWillHappen);
+            var aggregateException = new Exception("exception level 1", new AggregateException(exception1, exception2)).Mark(logEntryUnknown);
+
+            var logEntries = aggregateException.GetLogEntry(3);
+            Assert.Equal(3, logEntries.Length);
+            Assert.Equal(logEntryUnknown, logEntries[0]);
+            Assert.Equal(logEntryDefinedByBusiness, logEntries[1]);
+            Assert.Equal(logEntryIKnowItWillHappen, logEntries[2]);
         }
     }
 
