@@ -102,8 +102,9 @@ namespace Axe.Logging.Test
             var entry = "http://localhost:8080 Post";
             var user = new { Id = 1 };
             var data = new { Country = "China" };
-            var logEntry1 = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
-            var logEntry2 = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.IKnowItWillHappen);
+            var id = Guid.NewGuid();
+            var logEntry1 = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
+            var logEntry2 = new LogEntry(id, time, entry, user, data, Level.IKnowItWillHappen);
 
             Exception exception1 = new Exception("exception level 3").Mark(logEntry1);
             Exception exception2 = new Exception("exception level 3", new Exception("exception level 4").Mark(logEntry2));
@@ -120,9 +121,10 @@ namespace Axe.Logging.Test
             var entry = "http://localhost:8080 Post";
             var user = new { Id = 1 };
             var data = new { Country = "China" };
-            var logEntryUnknown = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.Unknown);
-            var logEntryDefinedByBusiness = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
-            var logEntryIKnowItWillHappen = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.IKnowItWillHappen);
+            var id = Guid.NewGuid();
+            var logEntryUnknown = new LogEntry(id, time, entry, user, data, Level.Unknown);
+            var logEntryDefinedByBusiness = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
+            var logEntryIKnowItWillHappen = new LogEntry(id, time, entry, user, data, Level.IKnowItWillHappen);
 
             Exception exception1 = new Exception("exception level 3").Mark(logEntryDefinedByBusiness);
             Exception exception2 = new Exception("exception level 3").Mark(logEntryIKnowItWillHappen);
