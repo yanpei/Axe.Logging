@@ -10,18 +10,13 @@ namespace Axe.Logging.Test
         [Fact]
         public void shold_can_mark_log_entry_for_any_exception()
         {
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new {Id = 1};
-            var data = new {Country="China"};
-
-            var logEntryDefinedByBusiness = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
+            var logEntryDefinedByBusiness = CreateLogEntry();
             var exceptionDefinedByBusiness = new Exception().Mark(logEntryDefinedByBusiness);
 
-            var logEntryIKnowItWillHappen = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.IKnowItWillHappen);
+            var logEntryIKnowItWillHappen =  CreateLogEntry(Level.IKnowItWillHappen);
             var exceptionIKnowItWillHappen = new SerializationException().Mark(logEntryIKnowItWillHappen);
 
-            var logEntryUnKnown = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.Unknown);
+            var logEntryUnKnown = CreateLogEntry(Level.Unknown);
             var exceptionUnKnow = new AggregateException().Mark(logEntryUnKnown);
 
             Assert.Equal(logEntryDefinedByBusiness, exceptionDefinedByBusiness.Data["AxeLogging"]);
@@ -32,13 +27,7 @@ namespace Axe.Logging.Test
         [Fact]
         public void should_get_log_entry_of_exception()
         {
-            var id = Guid.NewGuid();
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
-
-            var logEntry = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
+            var logEntry = CreateLogEntry();
             Exception exception = new Exception().Mark(logEntry);
 
             Assert.Equal(logEntry, exception.GetLogEntry(1)[0]);
@@ -47,12 +36,7 @@ namespace Axe.Logging.Test
         [Fact]
         public void should_get_log_entry_of_exception_when_log_entry_existed_in_inner_exception()
         {
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
-
-            var logEntry = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
+            var logEntry = CreateLogEntry();
             var innerException = new Exception("inner exception").Mark(logEntry);
             Exception exception = new Exception("exception 1", innerException);
 
@@ -62,11 +46,7 @@ namespace Axe.Logging.Test
         [Fact]
         public void should_get_log_entry_of_exception_in_certain_levels_given_max_level()
         {
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
-            var logEntry = new LogEntry(Guid.NewGuid(), time, entry, user, data, Level.DefinedByBusiness);
+            var logEntry = CreateLogEntry();
 
             Exception logEntryInExceptionLevel2 = new Exception("exception1 level1", new Exception("exception1 level 2").Mark(logEntry));
             Exception logEntryInExceptionLevel3 = new Exception("exception2 level 1", new Exception("exception2 level 2", new Exception("exception2 level 3").Mark(logEntry)));
@@ -79,12 +59,8 @@ namespace Axe.Logging.Test
         public void should_get_log_entry_of_aggreate_exception()
         {
             var id = Guid.NewGuid();
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
-            var logEntry1 = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
-            var logEntry2 = new LogEntry(id, time, entry, user, data, Level.IKnowItWillHappen);
+            var logEntry1 = CreateLogEntry(Level.DefinedByBusiness, id);
+            var logEntry2 = CreateLogEntry(Level.IKnowItWillHappen, id);
 
             Exception exception1 = new Exception("exception1").Mark(logEntry1);
             Exception exception2 = new Exception("exception2").Mark(logEntry2);
@@ -98,13 +74,10 @@ namespace Axe.Logging.Test
         [Fact]
         public void should_apply_max_level_constaraint_to_each_child_for_exception_contains_aggreate_exception()
         {
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
+            
             var id = Guid.NewGuid();
-            var logEntry1 = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
-            var logEntry2 = new LogEntry(id, time, entry, user, data, Level.IKnowItWillHappen);
+            var logEntry1 = CreateLogEntry(Level.IKnowItWillHappen, id);
+            var logEntry2 = CreateLogEntry(Level.Unknown, id);
 
             Exception exception1 = new Exception("exception level 3").Mark(logEntry1);
             Exception exception2 = new Exception("exception level 3", new Exception("exception level 4").Mark(logEntry2));
@@ -117,14 +90,10 @@ namespace Axe.Logging.Test
         [Fact]
         public void should_get_all_log_entries_when_exception_and_inner_exception_both_have_log_entry()
         {
-            var time = DateTime.UtcNow;
-            var entry = "http://localhost:8080 Post";
-            var user = new { Id = 1 };
-            var data = new { Country = "China" };
             var id = Guid.NewGuid();
-            var logEntryUnknown = new LogEntry(id, time, entry, user, data, Level.Unknown);
-            var logEntryDefinedByBusiness = new LogEntry(id, time, entry, user, data, Level.DefinedByBusiness);
-            var logEntryIKnowItWillHappen = new LogEntry(id, time, entry, user, data, Level.IKnowItWillHappen);
+            var logEntryUnknown = CreateLogEntry(Level.Unknown, id);
+            var logEntryDefinedByBusiness = CreateLogEntry(Level.DefinedByBusiness, id);
+            var logEntryIKnowItWillHappen = CreateLogEntry(Level.IKnowItWillHappen);
 
             Exception exception1 = new Exception("exception level 3").Mark(logEntryDefinedByBusiness);
             Exception exception2 = new Exception("exception level 3").Mark(logEntryIKnowItWillHappen);
@@ -135,6 +104,17 @@ namespace Axe.Logging.Test
             Assert.Equal(logEntryUnknown, logEntries[0]);
             Assert.Equal(logEntryDefinedByBusiness, logEntries[1]);
             Assert.Equal(logEntryIKnowItWillHappen, logEntries[2]);
+        }
+
+        private static LogEntry CreateLogEntry(Level level = Level.DefinedByBusiness, Guid id = default(Guid))
+        {
+            var time = DateTime.UtcNow;
+            var entry = "This is Entry";
+            var user = new {Id = 1};
+            var data = new {Country = "China"};
+            var logEntryId = id == default(Guid) ? Guid.NewGuid() : id;
+
+            return new LogEntry(logEntryId, time, entry, user, data, level);
         }
     }
 
